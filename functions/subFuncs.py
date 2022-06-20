@@ -12,6 +12,7 @@ def apTakeoff(ap_array, freq):
 # apReturn finds the index at which the AP returns to the same value as the takeoff point (for finding halfwidth and decay)
 def apReturn(ap_array, takeoff, freq):
     target = ap_array[int(takeoff)]
+    bl_return = 0
     
     for idx, x in enumerate(ap_array[int(takeoff):]):
         if x > target:
@@ -22,8 +23,28 @@ def apReturn(ap_array, takeoff, freq):
     
     return bl_return
 
-def halfWidth():
-    return hw
+def halfWidth(ap_array, peak, takeoff, freq):
+    # Find half height based on the voltage halfway between takeoff and peak
+    half_height = ((ap_array[int(peak)] - ap_array[int(takeoff)]) / 2) + ap_array(int(takeoff))
+    half_rise = 0
+    half_decay = 0
+
+    # Find the points at which rise and decay cross half_height...
+    for idx, x in enumerate(ap_array[int(takeoff):int(peak)]):
+        if x < half_height:
+            continue
+        elif x > half_height:
+            half_rise = idx
+            break
+    
+    for idx, x in enumerate(ap_array[int(peak):]):
+        if x > half_height:
+            continue
+        elif x < half_height:
+            half_decay = idx
+            break
+    # Return the difference in these two points (divided by sampling frequency, to return in s)
+    return (half_decay - half_rise) / freq
 
 def ahpMin():
     return ahpM
