@@ -6,8 +6,8 @@ Here I will define the subfunctions called in apFind at the time of AP peak disc
 
 # To find the AP takeoff point, return the maximum value of the first derivative of the AP
 def apTakeoff(ap_array, freq):
-    dVdt = np.diff(ap_array) / np.diff(len(ap_array)/freq)
-    return np.argmax(dVdt) 
+    dVdt = np.diff(ap_array) / np.diff([x/freq for x in range(len(ap_array))])
+    return np.argmax(dVdt)-1 
 
 # apReturn finds the index at which the AP returns to the same value as the takeoff point (for finding halfwidth and decay)
 def apReturn(ap_array, takeoff, freq):
@@ -25,7 +25,7 @@ def apReturn(ap_array, takeoff, freq):
 
 def halfWidth(ap_array, peak, takeoff, freq):
     # Find half height based on the voltage halfway between takeoff and peak
-    half_height = ((ap_array[int(peak)] - ap_array[int(takeoff)]) / 2) + ap_array(int(takeoff))
+    half_height = ((ap_array[int(peak)] - ap_array[int(takeoff)]) / 2) + ap_array[int(takeoff)]
     half_rise = 0
     half_decay = 0
 
@@ -48,8 +48,8 @@ def halfWidth(ap_array, peak, takeoff, freq):
 
 # All of the AHP measurements have been collapsed into this one function, as they primarily 
 def ahpMeas(ap_array, ap_return, freq):
-    ahp_min = np.min(ap_array[int(ap_return):])
-    ahp_min_idx = np.argmin(ap_array[int(ap_return):])
+    ahp_min = np.min(ap_array)
+    ahp_min_idx = np.argmin(ap_array)
 
     target = ap_array[int(ap_return)]
     ahp_end = 0

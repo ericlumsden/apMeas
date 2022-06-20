@@ -1,5 +1,5 @@
 import numpy as np
-from subFuncs import *
+from functions.subFuncs import *
 '''
 
 The function 'apFind' is used to find all action potentials in a given trace and run the subsequent functions for analyzing each action potential
@@ -11,7 +11,7 @@ For other AP properties, a 'sub_trace' is utilized, which takes the index of the
     ...that total stretch is made into an array and then passed into subsequent functions
 
 '''
-def apFind(trace, threshold=-20.0, buff=0.01, freq=10000)):
+def apFind(trace, threshold=-20.0, buff=0.01, freq=10000):
     # Initiate empty arrays for all of the measurements
     apPeaks = []
     apRise = []
@@ -32,7 +32,7 @@ def apFind(trace, threshold=-20.0, buff=0.01, freq=10000)):
             start = idx
         elif (val < threshold) and (start != 0):
             # Find the peak of the AP based on the start/end of threshold crossing...
-            peak_idx = np.argmax[start:idx] + start
+            peak_idx = np.argmax(trace[start:idx]) + start
             apPeaks.append(peak_idx + start)
 
             # Find inter-spike interval by taking difference in the indices of this AP and the previous one, then dividing by sampling frequency
@@ -55,7 +55,7 @@ def apFind(trace, threshold=-20.0, buff=0.01, freq=10000)):
             apHalfWidth.append(halfWidth(sub_trace, (peak_idx - start), (ap_takeoff - start), freq))
 
             # Collapsed all AHP measurements into one function
-            ahp_min, ahp_min_idx, ahp_len = ahpMeas(trace[int(peak_idx - buffer):int(peak_idx + (2*buffer))], ap_return, freq)
+            ahp_min, ahp_min_idx, ahp_len = ahpMeas(trace[int(peak_idx - buffer):int(peak_idx + (2*buffer))], int(ap_return - start), freq)
             apAHPmin.append(ahp_min)
             apAHPmin_idx.append((ahp_min_idx + start))
             apAHPlen.append(ahp_len)
