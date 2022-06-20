@@ -30,21 +30,22 @@ def halfWidth(ap_array, peak, takeoff, freq):
     half_decay = 0
 
     # Find the points at which rise and decay cross half_height...
-    for idx, x in enumerate(ap_array[int(takeoff):int(peak)]):
-        if x < half_height:
-            continue
-        elif x > half_height:
+    for idx, x in enumerate(ap_array[:int(peak)]):
+        if x > half_height:
             half_rise = idx
             break
+        else:
+            continue
     
     for idx, x in enumerate(ap_array[int(peak):]):
-        if x > half_height:
-            continue
-        elif x < half_height:
+        if x < half_height:
             half_decay = idx
             break
+        else:
+            continue
     # Return the difference in these two points (divided by sampling frequency, to return in s)
-    return (half_decay - half_rise) / freq
+    #print(half_decay, half_rise)
+    return ((half_decay - half_rise) / freq)
 
 # All of the AHP measurements have been collapsed into this one function, as they primarily 
 def ahpMeas(ap_array, ap_return, freq):

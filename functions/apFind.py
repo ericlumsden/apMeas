@@ -27,17 +27,16 @@ def apFind(trace, threshold=-20.0, buff=0.01, freq=10000):
 
     start = 0 # Start of threshold crossing for each AP
     for idx, val in enumerate(trace):
-        ap_count = len(apPeaks)
         if (val > threshold) and (start == 0):
             start = idx
         elif (val < threshold) and (start != 0):
             # Find the peak of the AP based on the start/end of threshold crossing...
             peak_idx = np.argmax(trace[start:idx]) + start
-            apPeaks.append(peak_idx + start)
+            apPeaks.append(peak_idx)
 
             # Find inter-spike interval by taking difference in the indices of this AP and the previous one, then dividing by sampling frequency
-            if (ap_count > 1):
-                apInterSpikeIntervals.append((peak_idx - apPeaks[ap_count]) / freq)
+            if (len(apPeaks) > 1):
+                apInterSpikeIntervals.append((peak_idx - apPeaks[-2]) / freq)
 
             # Get the subtrace array based on the peak and the buffer
             sub_trace = trace[int(peak_idx - buffer):int(peak_idx + buffer)]
@@ -52,7 +51,7 @@ def apFind(trace, threshold=-20.0, buff=0.01, freq=10000):
             apDecay.append((ap_return - peak_idx) / freq)
 
             # Half width, and after-hyperpolarization len/min are found using sub functions
-            apHalfWidth.append(halfWidth(sub_trace, (peak_idx - start), (ap_takeoff - start), freq))
+            apHalfWidth.append(halfWidth(sub_trace, (peak_idx - start + buffer), (ap_takeoff - start + buffer), freq))
 
             # Collapsed all AHP measurements into one function
             ahp_min, ahp_min_idx, ahp_len = ahpMeas(trace[int(peak_idx - buffer):int(peak_idx + (2*buffer))], int(ap_return - start), freq)

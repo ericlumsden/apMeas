@@ -22,9 +22,8 @@ abf = pyabf.ABF(f'{working_directory}/{df.trace_num.item()}.abf')
 
 apPeaks, apInterSpikeIntervals, apRise, apDecay, apHalfWidth, apAHPmin, apAHPlen = apFind(abf.sweepY)
 apPeaks_tp = [x/10000 for x in apPeaks]
-print(len(apPeaks), len(apInterSpikeIntervals), len(apRise), len(apDecay), len(apHalfWidth), len(apAHPmin), len(apAHPlen))
 fig, axs = plt.subplots(7,1)
-axs[0].scatter(apPeaks_tp[1:-1], apInterSpikeIntervals)
+axs[0].scatter(apPeaks_tp[1:], apInterSpikeIntervals)
 axs[1].scatter(apPeaks_tp, apRise)
 axs[2].scatter(apPeaks_tp, apDecay)
 axs[3].scatter(apPeaks_tp, apHalfWidth)
