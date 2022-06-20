@@ -46,8 +46,20 @@ def halfWidth(ap_array, peak, takeoff, freq):
     # Return the difference in these two points (divided by sampling frequency, to return in s)
     return (half_decay - half_rise) / freq
 
-def ahpMin():
-    return ahpM
+# All of the AHP measurements have been collapsed into this one function, as they primarily 
+def ahpMeas(ap_array, ap_return, freq):
+    ahp_min = np.min(ap_array[int(ap_return):])
+    ahp_min_idx = np.argmin(ap_array[int(ap_return):])
 
-def ahpLen():
-    return ahpL
+    target = ap_array[int(ap_return)]
+    ahp_end = 0
+    for idx, x in enumerate(ap_array[int(ap_return):]):
+        if x < target:
+            continue
+        elif x > target:
+            ahp_end = idx
+            break
+
+    ahp_len = (ahp_end - ap_return) / freq
+
+    return ahp_min, ahp_min_idx, ahp_len

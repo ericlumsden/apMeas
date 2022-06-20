@@ -19,6 +19,7 @@ def apFind(trace, threshold=-20.0, buff=0.01, freq=10000)):
     apDecay = []
     apHalfWidth = []
     apAHPmin = []
+    apAHPmin_idx = []
     apAHPlen = []
     apInterSpikeIntervals = []
 
@@ -37,7 +38,7 @@ def apFind(trace, threshold=-20.0, buff=0.01, freq=10000)):
 
             # Find inter-spike interval by taking difference in the indices of this AP and the previous one, then dividing by sampling frequency
             if (ap_count > 1):
-                apInterSpikeIntervals.append(((peak_idx +  - apPeaks[ap_count]) / freq)
+                apInterSpikeIntervals.append((peak_idx - apPeaks[ap_count]) / freq)
 
             # Get the subtrace array based on the peak and the buffer
             sub_trace = trace[int(peak_idx - buffer):int(peak_idx + buffer)]
@@ -53,8 +54,12 @@ def apFind(trace, threshold=-20.0, buff=0.01, freq=10000)):
 
             # Half width, and after-hyperpolarization len/min are found using sub functions
             apHalfWidth.append(halfWidth(sub_trace, (peak_idx - start), (ap_takeoff - start), freq))
-            apAHPmin.append(ahpMin())
-            apAHPlen.append(ahpLen())
+
+            # Collapsed all AHP measurements into one function
+            ahp_min, ahp_min_idx, ahp_len = ahpMeas(trace[int(peak_idx - buffer):int(peak_idx + (2*buffer))], ap_return, freq)
+            apAHPmin.append(ahp_min)
+            apAHPmin_idx.append((ahp_min_idx + start))
+            apAHPlen.append(ahp_len)
 
             start = 0 # Need to reset for next AP
         else:
