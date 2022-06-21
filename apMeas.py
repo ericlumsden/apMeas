@@ -37,10 +37,8 @@ df_len = len(df.index)
 for index, row in df.iterrows():
     os.mkdir(f"{working_directory}/{row['sparrow_num']}/")
     abf = pyabf.ABF(f"{working_directory}/{row['trace_num']}.abf")
-    print(row['trace_type'])
 
     if (row['trace_type'] == "'gap-free'"):
-        print('yup')
         if row['cd_exp'] == True:
             for exposures in ['pre', 'post']:
                 if exposures == 'pre':

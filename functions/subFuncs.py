@@ -44,7 +44,6 @@ def halfWidth(ap_array, peak, takeoff, freq):
         else:
             continue
     # Return the difference in these two points (divided by sampling frequency, to return in s)
-    #print(half_decay, half_rise)
     return ((half_decay - half_rise) / freq)
 
 # All of the AHP measurements have been collapsed into this one function, as they primarily 

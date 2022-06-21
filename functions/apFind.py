@@ -67,7 +67,6 @@ def apFind(trace, threshold=-20.0, buff=0.01, freq=10000):
     return apPeaks, apInterSpikeIntervals, apRise, apDecay, apHalfWidth, apAHPmin, apAHPlen
 
 def runAPfind(trace, working_directory, sparrow_num, cell_num, exposure=False, freq=10000):
-    print('called')
     # If there is an exposure we have to note that in the naming of the figure
     if exposure != False:
         cell_name = f'{cell_num}_{exposure}'
