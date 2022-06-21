@@ -17,7 +17,8 @@ Qs that remain:
 # First thing is to get the working directory where the csv and abf files are located...
 # ...user input at command line or in-file edit?
 # For now I will be testing using file saved in the apMeas directory
-working_directory = '/media/eric/HDD/uw/VGCC'
+#working_directory = '/media/eric/HDD/uw/VGCC'
+working_directory = os.getcwd()
 freq = 10000 # If we need to change the sampling frequency do so here, and set it in the called functions
 '''
 Steps:
@@ -30,7 +31,8 @@ Steps:
         2aii. If the trace is 'cc-steps' analyze each sweep individually, saving each sweep as a dataclass in a subfolder, again putting a copy into the 'data' folder
 3. Once all of this is done I will write a new script for doing summary data and figures
 '''
-csv_file_name = 'cadmiumBlock'
+#csv_file_name = 'cadmiumBlock'
+csv_file_name = 'test'
 df = pd.read_csv(f'{working_directory}/{csv_file_name}.csv')
 df_len = len(df.index)
 
