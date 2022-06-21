@@ -5,61 +5,16 @@ Here I will define the subfunctions called in apFind at the time of AP peak disc
 '''
 
 # To find the AP takeoff point, return the maximum value of the first derivative of the AP
-def apTakeoff(ap_array, freq):
-    dVdt = np.diff(ap_array) / np.diff([x/freq for x in range(len(ap_array))])
-    return np.argmax(dVdt)-1 
+def apTakeoff(ap_array, time):
+    return np.argmax(np.diff(np.diff(np.diff(ap_array) / np.diff(time)) / np.diff(time[:-1])) / np.diff(time[:-1]))
 
 # apReturn finds the index at which the AP returns to the same value as the takeoff point (for finding halfwidth and decay)
-def apReturn(ap_array, takeoff, freq):
-    target = ap_array[int(takeoff)]
-    bl_return = 0
-    
-    for idx, x in enumerate(ap_array[int(takeoff):]):
-        if x > target:
-            continue
-        else:
-            bl_return = idx
-            break
-    
-    return bl_return
+def apReturn(ap_array, peak, takeoff, ahp_min):
+    return np.interp(ap_array[int(takeoff)], ap_array[int(peak):int(ahp_min)][::-1], time[int(peak):int(ahp_min)][::-1])
 
-def halfWidth(ap_array, peak, takeoff, freq):
-    # Find half height based on the voltage halfway between takeoff and peak
-    half_height = ((ap_array[int(peak)] - ap_array[int(takeoff)]) / 2) + ap_array[int(takeoff)]
-    half_rise = 0
-    half_decay = 0
+# I'm using baseline_return here in findHW because this function was initially written as a test function... COME BACK AND CHANGE THIS ONCE IT'S WORKING
+def findHW(ap_array, time, half_height, peak, takeoff, baseline_return, freq):
+    up = np.interp(half_height, ap_array[int(takeoff):int(peak)], time[int(takeoff):int(peak)])
+    down = np.interp(half_height, ap_array[int(peak):int(baseline_return*freq)][::-1], time[int(peak):int(baseline_return*freq)][::-1])
 
-    # Find the points at which rise and decay cross half_height...
-    for idx, x in enumerate(ap_array[:int(peak)]):
-        if x > half_height:
-            half_rise = idx
-            break
-        else:
-            continue
-    
-    for idx, x in enumerate(ap_array[int(peak):]):
-        if x < half_height:
-            half_decay = idx
-            break
-        else:
-            continue
-    # Return the difference in these two points (divided by sampling frequency, to return in s)
-    return ((half_decay - half_rise) / freq)
-
-# All of the AHP measurements have been collapsed into this one function, as they primarily 
-def ahpMeas(ap_array, ap_return, freq):
-    ahp_min = np.min(ap_array)
-    ahp_min_idx = np.argmin(ap_array)
-
-    target = ap_array[int(ap_return)]
-    ahp_end = 0
-    for idx, x in enumerate(ap_array[int(ap_return):]):
-        if x < target:
-            continue
-        elif x > target:
-            ahp_end = idx
-            break
-
-    ahp_len = (ahp_end - ap_return) / freq
-
-    return ahp_min, ahp_min_idx, ahp_len
+    return ((down - up) / freq)

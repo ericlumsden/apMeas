@@ -8,18 +8,17 @@ The function 'apFind' is used to find all action potentials in a given trace and
 Action potentials are identified based on a threshold crossing which has a default value of -20.0 mV but can be changed
 
 For other AP properties, a 'sub_trace' is utilized, which takes the index of the AP peak and +/- a 'buffer' amount of time in the trace... 
-    ...the buffer is pre-set to 10ms, found by multiplying 0.01 by the recording frequency (10,000 Hz for my IC recordings)...
+    ...the buffer is pre-set to 20ms, found by multiplying 0.02 by the recording frequency (10,000 Hz for my IC recordings)...
     ...that total stretch is made into an array and then passed into subsequent functions
 
 '''
-def apFind(trace, threshold=-20.0, buff=0.01, freq=10000):
+def apFind(trace, threshold=-20.0, buff=0.02, freq=10000):
     # Initiate empty arrays for all of the measurements
     apPeaks = []
     apRise = []
     apDecay = []
     apHalfWidth = []
     apAHPmin = []
-    apAHPmin_idx = []
     apAHPlen = []
     apInterSpikeIntervals = []
 
@@ -32,33 +31,34 @@ def apFind(trace, threshold=-20.0, buff=0.01, freq=10000):
             start = idx
         elif (val < threshold) and (start != 0):
             # Find the peak of the AP based on the start/end of threshold crossing...
-            peak_idx = np.argmax(trace[start:idx]) + start
-            apPeaks.append(peak_idx)
+            peak_idx = np.argmax(trace[start:idx])
 
             # Find inter-spike interval by taking difference in the indices of this AP and the previous one, then dividing by sampling frequency
             if (len(apPeaks) > 1):
-                apInterSpikeIntervals.append((peak_idx - apPeaks[-2]) / freq)
+                apInterSpikeIntervals.append(((peak_idx + star) - apPeaks[-1]) / freq)
 
+            apPeaks.append(peak_idx + start)
             # Get the subtrace array based on the peak and the buffer
             sub_trace = trace[int(peak_idx - buffer):int(peak_idx + buffer)]
+            time = [x/freq for x in range(len(ap_array))]
+            ahp_min = np.argmin(sub_trace)
 
             # Use the max of the derivative to find the AP takeoff point (this will be used in sub functions)
-            ap_takeoff = apTakeoff(sub_trace, freq) + start # have to include `+ start` as the function just finds the max of the derivative of the array passed
+            ap_takeoff = apTakeoff(sub_trace, time) 
+            half_height = (sub_trace[ap_takeoff] - sub_trace[peak_idx]) / 2
             # Then use the takeoff point to find where the AP returns to baseline
-            ap_return = apReturn(sub_trace, (ap_takeoff - start), freq) + start
+            ap_return = apReturn(sub_trace, peak_idx, ap_takeoff, ahp_min) 
 
             # Rise and decay are easily calculated by taking difference between peak and takeoff or return point, then dividing by sampling frequency
             apRise.append((peak_idx - ap_takeoff) / freq)
             apDecay.append((ap_return - peak_idx) / freq)
 
             # Half width, and after-hyperpolarization len/min are found using sub functions
-            apHalfWidth.append(halfWidth(sub_trace, (peak_idx - start + buffer), (ap_takeoff - start + buffer), freq))
+            apHalfWidth.append(findHW(sub_trace, time, half_height, peak_idx, ap_takeoff, ap_return, freq))
 
-            # Collapsed all AHP measurements into one function
-            ahp_min, ahp_min_idx, ahp_len = ahpMeas(trace[int(peak_idx - buffer):int(peak_idx + (2*buffer))], int(ap_return - start), freq)
-            apAHPmin.append(ahp_min)
-            apAHPmin_idx.append((ahp_min_idx + start))
-            apAHPlen.append(ahp_len)
+            # Once all of the necessary components are discovered, the AHP measurements are very easy to collect, no function necessary
+            apAHPmin.append(sub_trace[ap_return] - sub_trace[ahp_min])
+            apAHPlen.append((ap_retun - ahp_min) / freq)
 
             start = 0 # Need to reset for next AP
         else:
