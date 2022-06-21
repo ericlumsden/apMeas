@@ -1,5 +1,6 @@
 import numpy as np
 from functions.subFuncs import *
+import matplotlib.pyplot as plt
 '''
 
 The function 'apFind' is used to find all action potentials in a given trace and run the subsequent functions for analyzing each action potential
@@ -64,3 +65,42 @@ def apFind(trace, threshold=-20.0, buff=0.01, freq=10000):
             continue
 
     return apPeaks, apInterSpikeIntervals, apRise, apDecay, apHalfWidth, apAHPmin, apAHPlen
+
+def runAPfind(trace, working_directory, sparrow_num, cell_num, exposure=False, freq=10000):
+    print('called')
+    # If there is an exposure we have to note that in the naming of the figure
+    if exposure != False:
+        cell_name = f'{cell_num}_{exposure}'
+    else:
+        cell_name = cell_num
+
+    # Run the apFind function (above) with the trace as designated in apMeas
+    apPeaks, apInterSpikeIntervals, apRise, apDecay, apHalfWidth, apAHPmin, apAHPlen = apFind(trace)
+    # Make a dictionary of these values, to be returned to apMeas for saving as a json file
+    ap_dict = {
+        'apPeaks': [int(x) for x in apPeaks],
+        'apISIs': [float(x) for x in apInterSpikeIntervals],
+        'apRise': [float(x) for x in apRise],
+        'apDecay': [float(x) for x in apDecay],
+        'apHW': [float(x) for x in apHalfWidth],
+        'apAHPmin': [float(x) for x in apAHPmin],
+        'apAHPlen': [float(x) for x in apAHPlen]
+    }
+
+    # We will use the AP peak indices as our time points for the measured values
+    apPeaks_tp = [x/freq for x in apPeaks]
+    # Create a figure with 7 rows for the different measured values as well as a general trace plot
+    fig, axs = plt.subplots(7,1)
+    axs[0].scatter(apPeaks_tp[1:], apInterSpikeIntervals)
+    axs[1].scatter(apPeaks_tp, apRise)
+    axs[2].scatter(apPeaks_tp, apDecay)
+    axs[3].scatter(apPeaks_tp, apHalfWidth)
+    axs[4].scatter(apPeaks_tp, apAHPmin)
+    axs[5].scatter(apPeaks_tp, apAHPlen)
+    axs[6].plot([x/10000 for x in range(len(trace))], trace)
+
+    # Save this figure in the sparrow # directory with the cell name as designated above
+    plt.savefig(f'{working_directory}/{sparrow_num}/{cell_name}')
+
+    # Return the dictionary to be saved as a json file in apMeas
+    return ap_dict
