@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 '''
 Rather than constantly iterating through each trace, I will find AP parameters when the peaks are discovered
 Here I will define the subfunctions called in apFind at the time of AP peak discovery
@@ -10,6 +11,11 @@ def apTakeoff(ap_array, time):
 
 # apReturn finds the index at which the AP returns to the same value as the takeoff point (for finding halfwidth and decay)
 def apReturn(ap_array, time, peak, takeoff, ahp_min):
+    plt.plot(time, ap_array)
+    plt.scatter(time[peak], ap_array[peak])
+    plt.scatter(time[int(takeoff)], ap_array[int(takeoff)])
+    plt.savefig('../fail.png')
+    plt.clf()
     return np.interp(ap_array[int(takeoff)], ap_array[int(peak):int(ahp_min)][::-1], time[int(peak):int(ahp_min)][::-1])
 
 # I'm using baseline_return here in findHW because this function was initially written as a test function... COME BACK AND CHANGE THIS ONCE IT'S WORKING
