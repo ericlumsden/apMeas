@@ -40,12 +40,14 @@ def apFind(trace, threshold=-20.0, buff=0.025, freq=10000):
             apPeaks.append(peak_idx)
             # Get the subtrace array based on the peak and the buffer...
             # ...catch if the peak comes too quick or too late for full window and just make the window from beginning/end of trace, respectively
-            if (peak_idx < (buffer * freq)):
+            print(peak_idx, buffer)
+            if (peak_idx < (buffer * 2)):
                 sub_trace = trace[:int(peak_idx + buffer)]
-            elif (peak_idx > (len(trace) - (buffer * freq))):
+            elif (peak_idx > (len(trace) - (buffer * 2))):
                 sub_trace = trace[int(peak_idx * buffer):]
             else:
                 sub_trace = trace[int(peak_idx - buffer):int(peak_idx + buffer)]
+                print('trace is from else statement')
 
             # It's important to calculate time here on the off chance there is an AP with a differently-sized window (too early/late)
             time = [x/freq for x in range(len(sub_trace))]
