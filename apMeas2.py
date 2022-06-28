@@ -32,9 +32,41 @@ def runAPfind(trace, threshold=-25.0, freq=10000, buffer=0.025):
             peakAmps.append(peak_amp)
 
             sub_trace = trace[int(peak_idx - buff):int(peak_idx + buff)]
+            peak_i = np.argmax(sub_trace)
             time = [x/freq for x in range(len(sub_trace))]
+
+            takeoff = np.argmax(np.diff(np.diff(np.diff(sub_trace[:peak_i]) / np.diff(time[:peak_i])) / np.diff(time[:int(peak_i-1)])) / np.diff(time[:int(peak_i - 2)]))
+
+            half_height = ((sub_trace[peak_i] - sub_trace[takeoff]) / 2) + sub_trace[takeoff]
+            window_min = np.argmin(sub_trace[peak_i:]) + peak_i
+            post_peak_to = (np.interp(sub_trace[int(takeoff)], sub_trace[int(peak_i):int(window_min)][::-1], time[int(peak_i):int(window_min)][::-1])) * freq
+
+            window_end = 0
+            for idx, val in enumerate(trace[int(post_peak_to + peak_idx)+1:]):
+                if val > sub_trace[int(takeoff)]:
+                    window_end = idx + (post_peak_to) + 1
+                    break
+                else:
+                    continue
+
+            print(window_end, peak_idx)
+            sub_trace = trace[int(peak_idx - buff):int(window_end + peak_idx)]
+            time = [x/freq for x in range(len(sub_trace))]
+            up = (np.interp(half_height, sub_trace[int(takeoff):int(peak_i)], time[int(takeoff):int(peak_i)]))
+            down = (np.interp(half_height, sub_trace[int(peak_i):int(post_peak_to)+1][::-1], time[int(peak_i):int(post_peak_to)+1][::-1]))
+            print(up, down)
+
+            half_width = (down - up) / freq
+            ahp_min = np.argmin(sub_trace[peak_i:]) + peak_i
+
             plt.figure(1)
             plt.plot(time, sub_trace)
+            plt.scatter(time[peak_i], sub_trace[peak_i], marker='x', color='r')
+            plt.scatter(up, half_height, marker='*', color='g')
+            plt.scatter(down, half_height, marker='*', color='g')
+            plt.scatter(time[ahp_min], sub_trace[ahp_min], marker='x', color='r')
+            plt.scatter(time[takeoff], sub_trace[takeoff], marker='x', color='k')
+            plt.scatter(post_peak_to/freq, sub_trace[takeoff], marker='x', color='k')
             plt.show()
             plt.clf()
 
