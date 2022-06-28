@@ -43,7 +43,7 @@ def apFind(trace, threshold=-20.0, buff=0.025, freq=10000):
             if (peak_i < (buffer * 2)):
                 sub_trace = trace[:int(peak_i + buffer)]
             elif (peak_i > (len(trace) - (buffer * 2))):
-                sub_trace = trace[int(peak_i * buffer):]
+                sub_trace = trace[int(peak_i + buffer):]
             else:
                 sub_trace = trace[int(peak_i - buffer):int(peak_i + buffer)]
 
@@ -54,14 +54,14 @@ def apFind(trace, threshold=-20.0, buff=0.025, freq=10000):
             peak_idx = np.argmax(sub_trace)
 
             # Use the max of the derivative to find the AP takeoff point (this will be used in sub functions)
-            ap_takeoff = apTakeoff(sub_trace, time) 
+            ap_takeoff = apTakeoff(sub_trace[:peak_idx], time[:peak_idx]) 
             
             if peak_idx == ap_takeoff: # If, for some reason, the ap_takeoff fails, skip and move to the next AP
                 start = 0 # Reset for the next AP
                 continue
             else:
                 # Find inter-spike interval by taking difference in the indices of this AP and the previous one, then dividing by sampling frequency
-                ahp_min = np.argmin(sub_trace)
+                ahp_min = np.argmin(sub_trace[peak_idx:]) + peak_idx
 
                 if (len(apPeaks) > 1):
                     apInterSpikeIntervals.append((peak_i - apPeaks[-1]) / freq)
@@ -111,18 +111,19 @@ def runAPfind(trace, working_directory, sparrow_num, cell_num, exposure=False, f
 
     # We will use the AP peak indices as our time points for the measured values
     apPeaks_tp = [x/freq for x in apPeaks]
+    print(len(apPeaks_tp[2:-1]), len(apInterSpikeIntervals), len(apRise), len(apDecay), len(apHalfWidth), len(apAHPmin), len(apAHPlen))
     # Create a figure with 7 rows for the different measured values as well as a general trace plot
     fig, axs = plt.subplots(7,1)
-    axs[0].scatter(apPeaks_tp[1:], apInterSpikeIntervals)
-    axs[1].scatter(apPeaks_tp, apRise)
-    axs[2].scatter(apPeaks_tp, apDecay)
-    axs[3].scatter(apPeaks_tp, apHalfWidth)
-    axs[4].scatter(apPeaks_tp, apAHPmin)
-    axs[5].scatter(apPeaks_tp, apAHPlen)
+    axs[0].scatter([x for x in range(len(apInterSpikeIntervals))], apInterSpikeIntervals)
+    axs[1].scatter([x for x in range(len(apRise))], apRise)
+    axs[2].scatter([x for x in range(len(apDecay))], apDecay)
+    axs[3].scatter([x for x in range(len(apHalfWidth))], apHalfWidth)
+    axs[4].scatter([x for x in range(len(apAHPmin))], apAHPmin)
+    axs[5].scatter([x for x in range(len(apAHPlen))], apAHPlen)
     axs[6].plot([x/10000 for x in range(len(trace))], trace)
 
     # Save this figure in the sparrow # directory with the cell name as designated above
-    plt.savefig(f'{working_directory}/{sparrow_num}/{cell_name}')
+    plt.savefig(f'{working_directory}/{sparrow_num}/{cell_name}', dpi=500)
 
     # Return the dictionary to be saved as a json file in apMeas
     return ap_dict

@@ -1,11 +1,48 @@
-from functions.apFind import *
 import json
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pyabf
 import os
+'''
+New order of operations:
+1. Find peak
+2. Find takeoff point
+3. Find first spot after peak that is same as takeoff
+4. Find next spot after that that is the same as or greater than takeoff
+5. Find half-width
+6. Define window as -0.025 to that return to takeoff after AP
+7. Find AHP min and length
+8. Rise and decay? Last priorities
+'''
 
+def runAPfind(trace, threshold=-25.0, freq=10000, buffer=0.025):
+    buff = int(buffer * freq)
+    peakIndices = []
+    peakAmps = []
+    start = 0
+    for idx, x in enumerate(trace):
+        if (start == 0) and (x > threshold):
+            start = idx
+        elif (start != 0) and (x <= threshold):
+            peak_idx = np.argmax(trace[int(start):idx]) + start
+            peak_amp = trace[int(peak_idx)]
+
+            peakIndices.append(peak_idx)
+            peakAmps.append(peak_amp)
+
+            sub_trace = trace[int(peak_idx - buff):int(peak_idx + buff)]
+            time = [x/freq for x in range(len(sub_trace))]
+            plt.figure(1)
+            plt.plot(time, sub_trace)
+            plt.show()
+            plt.clf()
+
+            start = 0
+        else:
+            continue
+
+    return ap_dict
 '''
 In the main apMeas script I will load a csv file with all of the info for the traces to be analyzed
 
@@ -42,21 +79,4 @@ for index, row in df.iterrows():
     except OSError:
         pass
     abf = pyabf.ABF(f"{working_directory}/{row['trace_num']}.abf")
-    plt.plot(abf.sweepX, abf.sweepY)
-    plt.show()
-
-    if (row['trace_type'] == "'gap-free'"):
-        if row['cd_exp'] == True:
-            for exposures in ['pre', 'post']:
-                if exposures == 'pre':
-                    trace = abf.sweepY[:int(int(row['cd_exp_start'])*freq)]
-                else:
-                    trace = abf.sweepY[int(int(row['cd_exp_end'])*freq):]
-                ap_dict = runAPfind(trace, working_directory, row['sparrow_num'], row['cell_num'], exposure=exposures)
-                json.dump(ap_dict, open(f"{working_directory}/{row['sparrow_num']}/{row['cell_num']}_{exposures}.json", 'w'))
-        else:
-            trace = abf.sweepY
-            ap_dict = runAPfind(trace, working_directory, row['sparrow_num'], row['cell_num'])
-            json.dump(ap_dict, open(f"{working_directory}/{row['sparrow_num']}/{row['cell_num']}.json", 'w'))
-    
-    print(f'Finished row {index} of {df_len}')
+    ap_dict = runAPfind(abf.sweepY)
